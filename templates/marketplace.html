@@ -46,7 +46,7 @@
                             <div class="d-none d-sm-block topbar-divider"></div>
                             <li class="nav-item dropdown no-arrow" role="presentation">
                                 <div class="nav-item dropdown no-arrow"><a class="dropdown-toggle nav-link" data-toggle="dropdown" aria-expanded="false" href="#"><span class="d-none d-lg-inline mr-2 text-gray-600 small">
-                                {{name[0]}} {{name[1]}}
+                                {{name}}
                             </span><img class="border rounded-circle img-profile" src="assets/img/avatars/avatar1.jpeg"></a>
                                     <div
                                         class="dropdown-menu shadow dropdown-menu-right animated--grow-in" role="menu"><a class="dropdown-item" role="presentation" href="#"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>&nbsp;Profile</a><a class="dropdown-item" role="presentation" href="#"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>&nbsp;Settings</a>
@@ -87,12 +87,12 @@
                                 <tbody>
                                     {% for item in data%}
                                     <tr>
-                                        <td>{{item[7]}}</td>
-                                        <td>{{item[1]}}</td>
-                                        <td>{{item[2]}}</td>
-                                        <td>{{item[9]}}</td>
-                                        <td>{{item[10]}}</td>
-                                        <td><form action="" onsubmit="return requests_func('{{item[7]}}','{{item[0]}}','{{item[1]}}')"><input type="submit" value="Send Request"></form></td>
+                                        <td>{{item.land_id}}</td>
+                                        <td>{{item.fname}}</td>
+                                        <td>{{item.lname}}</td>
+                                        <td>{{item.size}}</td>
+                                        <td>{{item.price}}</td>
+                                        <td><form action="" onsubmit="return requests_func('{{item.land_id}}','{{item.id}}','{{item.fname}}')"><input type="submit" value="Send Request"></form></td>
                                         
                                     </tr>
                                     {% endfor %}

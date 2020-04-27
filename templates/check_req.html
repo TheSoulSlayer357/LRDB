@@ -91,10 +91,10 @@
                                 <tbody>
                                     {% for item in data%}
                                     <tr>
-                                        <td>{{item[0]}}</td>
-                                        <td>{{item[2]}}</td>
-                                        <td><form action="" onsubmit="return acceptFunction('{{item[0]}}','{{item[5]}}');"><input type="submit" value="Accept"></form></td>
-                                        <td><form action="" onsubmit="return declineFunction('{{item[0]}}','{{item[5]}}');"><input type="submit" value="Decline"></form></td>
+                                        <td>{{item.Land_ID}}</td>
+                                        <td>{{item.From_user}}</td>
+                                        <td><form action="" onsubmit="return acceptFunction('{{item.Land_ID}}','{{item.from_user_id}}');"><input type="submit" value="Accept"></form></td>
+                                        <td><form action="" onsubmit="return declineFunction('{{item.Land_ID}}','{{item.from_user_id}}');"><input type="submit" value="Decline"></form></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -121,18 +121,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
     <script src="assets/js/theme.js"></script>
     <script>
-        function acceptFunction(land_id,from_user){
+        function acceptFunction(land_id,from_user_id){
             land_id = escape(land_id)
-            from_user = escape(from_user)
-            location.href= '/setstatus/'+land_id+'/'+from_user+'/1';
+            from_user_id = escape(from_user_id)
+            location.href= '/setstatus/'+land_id+'/'+from_user_id+'/1';
             return false;
         }
     </script>
     <script>
-        function declineFunction(land_id,from_user){
+        function declineFunction(land_id,from_user_id){
             land_id = escape(land_id)
-            from_user = escape(from_user)
-            location.href= '/setstatus/'+land_id+'/'+from_user+'/0';
+            from_user_id = escape(from_user_id)
+            location.href= '/setstatus/'+land_id+'/'+from_user_id+'/0';
             return false;
         }
     </script>

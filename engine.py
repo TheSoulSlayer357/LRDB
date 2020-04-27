@@ -1,37 +1,86 @@
 from flask import Flask, request, render_template, send_file, redirect,url_for, flash,session
+from flask_sqlalchemy import SQLAlchemy
 import hashlib
-import db_meths
 import bc_settings
 from io import BytesIO
+import random
 
 app = Flask(__name__)
 app.secret_key='hello mellow jello'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/lrdb'
+db = SQLAlchemy(app)
+
+class fm_profiles(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    fname = db.Column(db.String(80))
+    lname = db.Column(db.String(80))
+    email = db.Column(db.String(120))
+    pswd = db.Column(db.String(80))
+
+class land_details(db.Model):
+    id = db.Column(db.Integer)
+    fname = db.Column(db.String(80))
+    lname = db.Column(db.String(80))
+    doc1 = db.Column(db.LargeBinary())
+    doc2 = db.Column(db.LargeBinary())
+    doc3 = db.Column(db.LargeBinary())
+    doc4 = db.Column(db.LargeBinary())
+    land_id = db.Column(db.Integer, primary_key=True)
+    sell = db.Column(db.Integer)
+    size = db.Column(db.Integer)
+    price = db.Column(db.Integer)
+    loc = db.Column(db.String(80))
+
+class land_requests(db.Model):
+    req_id = db.Column(db.Integer, primary_key=True)
+    Land_ID = db.Column(db.Integer)
+    To_user = db.Column(db.String(80))
+    From_user = db.Column(db.String(80))
+    status = db.Column(db.Integer)
+    to_user_id = db.Column(db.Integer)
+    from_user_id = db.Column(db.Integer)
+
+@app.route("/")
+def index():
+    return render_template("home.html")
 
 @app.route('/register', methods = ['GET', 'POST'])
 def usr_reg():
     if request.method=='POST':
-        ack = db_meths.set_prof(request.form['first_name'],request.form['last_name'],request.form['email'],request.form['password'],request.form['unique_id'])
-        if ack==1:
-            flash('Successful Registration') 
-        else: 
+        try:
+            fname = request.form['first_name']
+            lname = request.form['last_name']
+            email = request.form['email']
+            pswd = request.form['password']
+            id = request.form['unique_id']
+
+            register = fm_profiles(id=id,fname=fname,lname=lname,email=email,pswd=pswd)
+            db.session.add(register)
+            db.session.commit()
+            flash('Successful Registration')
+        except: 
             flash('Error in registering. Please try again later')
-    return render_template('register.html')# /template/home.html
+    return render_template('register.html')
 
 @app.route('/login', methods = ['GET','POST'])
 def usr_log():
     if request.method=='POST':
-        record=db_meths.get_prof(request.form['email'],request.form['password'])
-        session['record_prof'] = record
-        if record != 0:
+        mail = request.form['email']
+        pswd = request.form['password']
+
+        login = fm_profiles.query.filter_by(email=mail, pswd=pswd).first()
+        session['fname'] = login.fname
+        session['lname'] = login.lname
+        session['id'] = login.id
+        if login is not None:
             return redirect('/profile')
         else:
             flash('Login failed. Check credentials and try again')
-            print('Login failed')
     return render_template('login.html')
 
 @app.route('/profile')
 def profile():
-    return render_template('profile.html',data = session['record_prof'])
+    return render_template('profile.html',data = session['fname']+' '+session['lname'])
 
 @app.route('/land-register', methods=['GET', 'POST'])
 def land_reg():
@@ -39,83 +88,93 @@ def land_reg():
     f2_hash = hashlib.sha256() #set the hashing algo  
     f3_hash = hashlib.sha256() #set the hashing algo  
     f4_hash = hashlib.sha256() #set the hashing algo  
-    record = session['record_prof']
     if request.method == 'POST': #Check for POST method for form 
-        f1 = request.files["doc1"].read()
-        f2 = request.files["doc2"].read()
-        f3 = request.files["doc3"].read()
-        f4 = request.files["doc4"].read()
-        f1_hash.update(f1)
-        f2_hash.update(f2)
-        f3_hash.update(f3)
-        f4_hash.update(f4)
-        doc1_hash = f1_hash.hexdigest()
-        doc2_hash = f2_hash.hexdigest()
-        doc3_hash = f3_hash.hexdigest()
-        doc4_hash = f4_hash.hexdigest()
-        ack = db_meths.set_land(record[4], record[0], record[1], f1, f2, f3, f4, request.form['loc'], request.form['size']) #Inserting data onto the database
-        if ack == 1:
+        try:
+            f1 = request.files["doc1"].read()
+            f2 = request.files["doc2"].read()
+            f3 = request.files["doc3"].read()
+            f4 = request.files["doc4"].read()
+            f1_hash.update(f1)
+            f2_hash.update(f2)
+            f3_hash.update(f3)
+            f4_hash.update(f4)
+            doc1_hash = f1_hash.hexdigest()
+            doc2_hash = f2_hash.hexdigest()
+            doc3_hash = f3_hash.hexdigest()
+            doc4_hash = f4_hash.hexdigest()
+            register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
+            db.session.add(register_land)
+            db.session.commit()
             bc_settings.contract.functions.setFarmer(int(record[4]),record[0],record[1],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
             flash('Land Registered Successsfully')
-        else:
-            flash('Land Registration Unsuccessful. Check details before entering')
+        except:
+            flash('Land Registration Unsuccessful. Check details before entering')            
     return render_template('land-register.html')    
 
 
 @app.route('/table')
 def table():
-    record_prof = session['record_prof']
-    record_land = db_meths.get_land(record_prof[4])
-    print('Contract Information : {}'.format(
-        bc_settings.contract.functions.getFarmer(record_prof[4]).call()))
-    return render_template('table.html',data=record_land, name=session['record_prof'])
+    land = land_details.query.filter_by(id=session['id'])
+    print('Contract Information : {}'.format(bc_settings.contract.functions.getFarmer(int(session['id'])).call()))
+    return render_template('table.html',data=land, name=session['fname']+' '+session['lname'])
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login')
 
-@app.route('/download/<land_id>/<num>', methods=['GET','POST'])
-def download(land_id,num):
-    record_prof = session['record_prof']
-    record_land = db_meths.get_land_uid(record_prof[4],land_id)
-    data = record_land[int(num)]
-    return send_file(BytesIO(data),attachment_filename='flask.txt',as_attachment=True)
+@app.route('/download/<land_id>/<doc>', methods=['GET','POST'])
+def download(land_id,doc):
+    land = land_details.query.filter_by(land_id=land_id).first()
 
+    if doc=='doc1':
+        data = land.doc1
+        return send_file(BytesIO(data),attachment_filename='flask.txt',as_attachment=True)
+    elif doc=='doc2':
+        data = land.doc2
+        return send_file(BytesIO(data),attachment_filename='flask.txt',as_attachment=True)
+    elif doc=='doc3':
+        data = land.doc3
+        return send_file(BytesIO(data),attachment_filename='flask.txt',as_attachment=True)
+    elif doc=='doc4':
+        data = land.doc4
+        return send_file(BytesIO(data),attachment_filename='flask.txt',as_attachment=True)
 
 @app.route('/sell_market/<land_id>/<price>', methods=['GET','POST'])
 def sell_market(land_id, price):
-    record = db_meths.sell_land(land_id,price)
-    print(record)
-    if record == 1:
-        print('Land is set to sell')
-    else:
-        print('Land not set to sell. Please try again later')
-    return redirect('/profile')
-    
+    try:
+        land = land_details.query.filter_by(land_id=land_id).first()
+        land.sell = 1
+        land.price = price
+        db.session.commit()
+        flash('Land is set to sell')
+    except:
+        flash('Land not set to sell. Please try again later')
+    return redirect('/table')
+
 @app.route('/marketplace')
 def marketplace():
-    data = db_meths.get_land_sell()
-    return render_template('marketplace.html',data = data,name=session['record_prof'])
+    land_sell = land_details.query.filter_by(sell=1)
+    return render_template('marketplace.html',data = land_sell,name=session['fname']+' '+session['lname'])
 
 @app.route('/requests/<land_id>/<uid>/<to_user>', methods=['GET','POST'])
 def requests(land_id,uid,to_user):
-    record_prof = session['record_prof']
-    from_user = record_prof[0]
-    from_user_id = record_prof[4]
-    to_user_id = uid
-    ack = db_meths.set_requests(land_id,to_user,from_user,to_user_id,from_user_id)
-    if ack==1:
+    try:
+        from_user = session['fname']
+        from_user_id = session['id']
+        to_user_id = uid
+        req = land_requests(Land_ID = land_id, To_user = to_user, From_user = from_user, status=0, to_user_id = to_user_id, from_user_id = from_user_id)
+        db.session.add(req)
+        db.session.commit()
         flash('Request sent','warnings')
-    else:
+    except:
         flash('Request not sent','warnings')
     return redirect('/marketplace')
 
 @app.route('/checkreq')
 def checkreq():
-    record_prof = session['record_prof']
-    data = db_meths.get_requests(record_prof[0])
-    return render_template('check_req.html',data=data)
+    req = land_requests.query.filter_by(to_user_id = session['id'])
+    return render_template('check_req.html',data=req)
 
 @app.route('/setstatus/<land_id>/<from_user_id>/<status>')
 def setstatus(land_id,from_user_id,status):
@@ -124,16 +183,14 @@ def setstatus(land_id,from_user_id,status):
         f2_hash = hashlib.sha256() #set the hashing algo  
         f3_hash = hashlib.sha256() #set the hashing algo  
         f4_hash = hashlib.sha256() #set the hashing algo  
-        record_prof = db_meths.get_prof_id(from_user_id)
-        record_prof_to = session['record_prof']
-        rec = db_meths.get_land_uid(record_prof_to[4],land_id)
-        f1 = rec[3]
-        f2 = rec[4]
-        f3 = rec[5]
-        f4 = rec[6]
-        uid = record_prof[4]
-        fname = record_prof[0]
-        lname = record_prof[1]
+
+        user = fm_profiles.query.filter_by(id=from_user_id).first()
+        land = land_details.query.filter_by(land_id=land_id).first()
+
+        f1 = land.doc1
+        f2 = land.doc2
+        f3 = land.doc3
+        f4 = land.doc4
         f1_hash.update(f1)
         f2_hash.update(f2)
         f3_hash.update(f3)
@@ -142,19 +199,30 @@ def setstatus(land_id,from_user_id,status):
         do2_hash = f2_hash.hexdigest()
         do3_hash = f3_hash.hexdigest()
         do4_hash = f4_hash.hexdigest()
-        ack = db_meths.request_handler(status,land_id,from_user_id)
-        bc_settings.contract.functions.setFarmer(uid,fname,lname,do1_hash,do2_hash,do3_hash,do4_hash).transact() #Blockchain Function code 
+
+        land.id = user.id
+        land.fname = user.fname
+        land.lname = user.lname
+        land.sell=0
+        land.price=0
+        db.session.commit()
+        req = land_requests.query.filter_by(Land_ID=land_id).first()
+        db.session.delete(req)
+        db.session.commit()
+
+        bc_settings.contract.functions.setFarmer(int(user.id),user.fname,user.lname,do1_hash,do2_hash,do3_hash,do4_hash).transact() #Blockchain Function code 
         print('Request has been accepted. Transaction successsfull')
     elif status == '0':
-        ack = db_meths.request_handler(status,land_id,from_user_id)
-        if ack==1:
-            print('Request has been declined')
-        else:
-            print('Request has not been declined. Please try again later')
+        req = land_requests.query.filter_by(Land_ID=land_id).first()
+        db.session.delete(req)
+        db.session.commit()
+        # ack = db_meths.request_handler(status,land_id,from_user_id)
+        print('Request has been declined')
     return redirect('/profile')
 
 
 if __name__ == "__main__": 
+    db.create_all()
     app.run(debug = True, threaded=True) 
 
 
