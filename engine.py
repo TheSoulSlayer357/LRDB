@@ -12,10 +12,14 @@ db = SQLAlchemy(app)
 
 class fm_profiles(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    username = db.Column(db.String(80))
     fname = db.Column(db.String(80))
     lname = db.Column(db.String(80))
     email = db.Column(db.String(120))
     pswd = db.Column(db.String(80))
+    addr = db.Column(db.String(200))
+    city = db.Column(db.String(80))
+    country = db.Column(db.String(80))
 
 class land_details(db.Model):
     id = db.Column(db.Integer)
@@ -80,7 +84,8 @@ def usr_log():
 
 @app.route('/profile')
 def profile():
-    return render_template('profile.html',data = session['fname']+' '+session['lname'])
+    profile = fm_profiles.query.filter_by(id=session['id']).first()
+    return render_template('profile.html',name = session['fname']+' '+session['lname'], data = profile)
 
 @app.route('/land-register', methods=['GET', 'POST'])
 def land_reg():
@@ -105,16 +110,17 @@ def land_reg():
             register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
             db.session.add(register_land)
             db.session.commit()
-            bc_settings.contract.functions.setFarmer(int(record[4]),record[0],record[1],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
+            bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
             flash('Land Registered Successsfully')
+            redirect('/profile')
         except:
             flash('Land Registration Unsuccessful. Check details before entering')            
-    return render_template('land-register.html')    
+    return render_template('land-register.html',name=session['fname']+' '+session['lname'])    
 
 
 @app.route('/table')
 def table():
-    land = land_details.query.filter_by(id=session['id'])
+    land = land_details.query.filter_by(id=session['id']).all()
     print('Contract Information : {}'.format(bc_settings.contract.functions.getFarmer(int(session['id'])).call()))
     return render_template('table.html',data=land, name=session['fname']+' '+session['lname'])
 
@@ -220,6 +226,31 @@ def setstatus(land_id,from_user_id,status):
         print('Request has been declined')
     return redirect('/profile')
 
+@app.route('/user_settings/<fno>', methods=['GET','POST'])
+def userset(fno):
+    profile = fm_profiles.query.filter_by(id=session['id']).first()
+    if fno == '1':
+
+        fname=request.form['first_name']
+        lname=request.form['last_name']
+        uname=request.form['username']
+        email=request.form['email']
+        profile.lname = lname
+        profile.email = email
+        profile.username = uname
+        db.session.commit()
+        redirect('/profile')
+    # else:
+    #     addr = request.form['address']
+    #     city = request.form['city']
+    #     country = request.form['country']
+    #     profile.addr = addr
+    #     profile.city = city
+    #     profile.country = country
+    #     db.session.commit()
+    #     redirect('/profile')
+        
+    return render_template('profile.html',name = session['fname']+' '+session['lname'], data = profile)
 
 if __name__ == "__main__": 
     db.create_all()
