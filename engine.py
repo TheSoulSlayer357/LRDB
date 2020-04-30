@@ -8,6 +8,7 @@ import random
 app = Flask(__name__)
 app.secret_key='hello mellow jello'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/lrdb'
+app.url_map.strict_slashes = False
 db = SQLAlchemy(app)
 
 class fm_profiles(db.Model):
@@ -82,9 +83,29 @@ def usr_log():
             flash('Login failed. Check credentials and try again')
     return render_template('login.html')
 
-@app.route('/profile')
-def profile():
+@app.route('/profile/<fno>', methods=['GET','POST'])
+@app.route('/profile/', methods=['GET','POST'])
+def profile(fno=None):
     profile = fm_profiles.query.filter_by(id=session['id']).first()
+    if fno=='1':
+        if request.method == 'POST':
+            fname=request.form['first_name']
+            lname=request.form['last_name']
+            uname=request.form['username']
+            email=request.form['email']
+            profile.lname = lname
+            profile.email = email
+            profile.username = uname
+            db.session.commit()
+    else:
+        if request.method=='POST':
+            addr = request.form['address']
+            city = request.form['city']
+            country = request.form['country']
+            profile.addr = addr
+            profile.city = city
+            profile.country = country
+            db.session.commit()
     return render_template('profile.html',name = session['fname']+' '+session['lname'], data = profile)
 
 @app.route('/land-register', methods=['GET', 'POST'])
@@ -226,31 +247,6 @@ def setstatus(land_id,from_user_id,status):
         print('Request has been declined')
     return redirect('/profile')
 
-@app.route('/user_settings/<fno>', methods=['GET','POST'])
-def userset(fno):
-    profile = fm_profiles.query.filter_by(id=session['id']).first()
-    if fno == '1':
-
-        fname=request.form['first_name']
-        lname=request.form['last_name']
-        uname=request.form['username']
-        email=request.form['email']
-        profile.lname = lname
-        profile.email = email
-        profile.username = uname
-        db.session.commit()
-        redirect('/profile')
-    # else:
-    #     addr = request.form['address']
-    #     city = request.form['city']
-    #     country = request.form['country']
-    #     profile.addr = addr
-    #     profile.city = city
-    #     profile.country = country
-    #     db.session.commit()
-    #     redirect('/profile')
-        
-    return render_template('profile.html',name = session['fname']+' '+session['lname'], data = profile)
 
 if __name__ == "__main__": 
     db.create_all()
