@@ -16,3 +16,10 @@ contract = w3.eth.contract(
     address=tx_receipt.contractAddress,
     abi=abi,
 )
+def get_blocks_info():
+    latest = w3.eth.blockNumber
+    for i in range(0, latest):
+        block_info=w3.eth.getBlock(i)
+        return block_info.number, block_info.hash.hex()
+number,hash1 = get_blocks_info()
+print(number, hash1)

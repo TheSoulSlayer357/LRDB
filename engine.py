@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, send_file, redirect,url_for, flash,session
 from flask_sqlalchemy import SQLAlchemy
 import hashlib
-import bc_settings
+# import bc_settings
 from io import BytesIO
 import random
 
@@ -21,6 +21,7 @@ class fm_profiles(db.Model):
     addr = db.Column(db.String(200))
     city = db.Column(db.String(80))
     country = db.Column(db.String(80))
+    admin = db.Column(db.Integer)
 
 class land_details(db.Model):
     id = db.Column(db.Integer)
@@ -45,6 +46,11 @@ class land_requests(db.Model):
     to_user_id = db.Column(db.Integer)
     from_user_id = db.Column(db.Integer)
 
+class transactioms(db.Model):
+    t_id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.String(100))
+    use_case = db.Column(db.String(80))
+
 @app.route("/")
 def index():
     return render_template("home.html")
@@ -63,6 +69,7 @@ def usr_reg():
             db.session.add(register)
             db.session.commit()
             flash('Successful Registration')
+            return redirect('/login')
         except: 
             flash('Error in registering. Please try again later')
     return render_template('register.html')
@@ -74,10 +81,10 @@ def usr_log():
         pswd = request.form['password']
 
         login = fm_profiles.query.filter_by(email=mail, pswd=pswd).first()
-        session['fname'] = login.fname
-        session['lname'] = login.lname
-        session['id'] = login.id
         if login is not None:
+            session['fname'] = login.fname
+            session['lname'] = login.lname
+            session['id'] = login.id
             return redirect('/profile')
         else:
             flash('Login failed. Check credentials and try again')
@@ -131,7 +138,8 @@ def land_reg():
             register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
             db.session.add(register_land)
             db.session.commit()
-            bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
+            tx = bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
+            addr = tx.contractAddress
             flash('Land Registered Successsfully')
             redirect('/profile')
         except:
@@ -247,6 +255,29 @@ def setstatus(land_id,from_user_id,status):
         print('Request has been declined')
     return redirect('/profile')
 
+
+@app.route('/admin', methods=['GET','POST'])
+def admin():
+    prof = fm_profiles.query.filter_by(id=session['id'],admin='1').first()
+    if prof:
+        return redirect('/admin_profile')
+    else:
+        if request.method=='POST':
+            mail = request.form['email']
+            pswd = request.form['password']
+
+            login = fm_profiles.query.filter_by(email=mail, pswd=pswd, admin='1').first()
+            if login is not None:
+                return redirect('/admin_profile')
+            else:
+                flash('Login failed. Check credentials or contact administrator and try again')
+    return render_template('admin_login.html')
+
+@app.route('/admin_profile')
+def admin_prof():
+    land = land_details.query.filter_by().all()
+    
+    return render_template('admin_profile.html')
 
 if __name__ == "__main__": 
     db.create_all()
