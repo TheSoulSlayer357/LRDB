@@ -77,27 +77,27 @@ def land_reg():
     f3_hash = hashlib.sha256() #set the hashing algo  
     f4_hash = hashlib.sha256() #set the hashing algo  
     if request.method == 'POST': #Check for POST method for form 
-        # try:
-        f1 = request.files["doc1"].read()
-        f2 = request.files["doc2"].read()
-        f3 = request.files["doc3"].read()
-        f4 = request.files["doc4"].read()
-        f1_hash.update(f1)
-        f2_hash.update(f2)
-        f3_hash.update(f3)
-        f4_hash.update(f4)
-        doc1_hash = f1_hash.hexdigest()
-        doc2_hash = f2_hash.hexdigest()
-        doc3_hash = f3_hash.hexdigest()
-        doc4_hash = f4_hash.hexdigest()
-        register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
-        db.session.add(register_land)
-        db.session.commit()
-        bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
-        flash('Land Registered Successsfully')
-        redirect('/profile')
-        # except:
-            # flash('Land Registration Unsuccessful. Check details before entering')            
+        try:
+            f1 = request.files["doc1"].read()
+            f2 = request.files["doc2"].read()
+            f3 = request.files["doc3"].read()
+            f4 = request.files["doc4"].read()
+            f1_hash.update(f1)
+            f2_hash.update(f2)
+            f3_hash.update(f3)
+            f4_hash.update(f4)
+            doc1_hash = f1_hash.hexdigest()
+            doc2_hash = f2_hash.hexdigest()
+            doc3_hash = f3_hash.hexdigest()
+            doc4_hash = f4_hash.hexdigest()
+            register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
+            db.session.add(register_land)
+            db.session.commit()
+            bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
+            flash('Land Registered Successsfully')
+            return redirect('/profile')
+        except:
+            flash('Land Registration Unsuccessful. Check details before entering')            
     return render_template('land-register.html',name=session['fname']+' '+session['lname'])    
 
 

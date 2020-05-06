@@ -7,5 +7,5 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:330
 app.url_map.strict_slashes = False
 db = SQLAlchemy(app)
 
-from LRDB import engine
+from LRDB import routes
 from LRDB import bc_settings

@@ -35,7 +35,7 @@ class land_requests(db.Model):
     to_user_id = db.Column(db.Integer)
     from_user_id = db.Column(db.Integer)
 
-class transactioms(db.Model):
+class transactions(db.Model):
     t_id = db.Column(db.Integer, primary_key=True)
     transaction_id = db.Column(db.String(100))
     use_case = db.Column(db.String(80))

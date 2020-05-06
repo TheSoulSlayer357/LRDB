@@ -1,6 +1,8 @@
 from flask import flash
 from web3 import Web3
 import json
+from LRDB import db,app
+from LRDB.models import transactions
 #Blockchain and Contract Settings
 ganache_url = "http://localhost:8545" #URL used for connecting to blockchain
 w3 = Web3(Web3.HTTPProvider(ganache_url)) #web3 object created for contract deployment using URL
@@ -16,9 +18,14 @@ contract = w3.eth.contract(
     address=tx_receipt.contractAddress,
     abi=abi,
 )
-def get_blocks_info():
-    latest = w3.eth.blockNumber
-    for i in range(0, latest):
-        block_info=w3.eth.getBlock(i)
-        print(block_info.number)
-get_blocks_info()
+
+# def get_blocks_info(message):
+#     latest = w3.eth.blockNumber
+#     for i in range(0, latest):
+#         block_info=w3.eth.getBlock(i)
+#         db.engine.execute('insert into transactions (t_id,transaction_id,use_case) values ('+str(block_info.number)+',"'+str(block_info.hash.hex())+'","'+message+'")')
+
+# get_blocks_info('hello')
+        
+
+        
