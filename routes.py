@@ -1,10 +1,12 @@
 from flask import render_template, url_for, flash, redirect, request,session, send_file
 from LRDB.models import fm_profiles,land_details,land_requests, transactions
-from . import bc_settings
+from . import bc_settings as block
 from io import BytesIO
 import hashlib
 from LRDB import db,app
 import random
+import mysql.connector
+conn = mysql.connector.connect(host="localhost",user="root",passwd="root", database="lrdb")
 
 @app.route("/")
 def index():
@@ -77,7 +79,7 @@ def land_reg():
     f3_hash = hashlib.sha256() #set the hashing algo  
     f4_hash = hashlib.sha256() #set the hashing algo  
     if request.method == 'POST': #Check for POST method for form 
-        try:
+        # try:
             f1 = request.files["doc1"].read()
             f2 = request.files["doc2"].read()
             f3 = request.files["doc3"].read()
@@ -92,19 +94,22 @@ def land_reg():
             doc4_hash = f4_hash.hexdigest()
             register_land = land_details(id=request.form['uid'],fname=session['fname'], lname=session['lname'],doc1=f1,doc2=f2,doc3=f3,doc4=f4,land_id=random.randint(1,1000),sell=0,size=request.form['size'],price=0,loc=request.form['loc'])
             db.session.add(register_land)
+            tx_hash = block.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
+            tx_receipt = block.w3.eth.waitForTransactionReceipt(tx_hash)
+            transact = transactions(t_id = tx_receipt.blockNumber, transaction_id = tx_hash.hex(), use_case= "Land Registration")
+            db.session.add(transact)
             db.session.commit()
-            bc_settings.contract.functions.setFarmer(int(request.form['uid']),session['fname'],session['lname'],doc1_hash,doc2_hash,doc3_hash,doc4_hash).transact() #Blockchain Function code
             flash('Land Registered Successsfully')
             return redirect('/profile')
-        except:
-            flash('Land Registration Unsuccessful. Check details before entering')            
+        # except:
+        #     flash('Land Registration Unsuccessful. Check details before entering')            
     return render_template('land-register.html',name=session['fname']+' '+session['lname'])    
 
 
 @app.route('/table')
 def table():
     land = land_details.query.filter_by(id=session['id']).all()
-    print('Contract Information : {}'.format(bc_settings.contract.functions.getFarmer(int(session['id'])).call()))
+    print('Contract Information : {}'.format(block.contract.functions.getFarmer(int(session['id'])).call()))
     return render_template('table.html',data=land, name=session['fname']+' '+session['lname'])
 
 @app.route('/logout')
@@ -199,7 +204,11 @@ def setstatus(land_id,from_user_id,status):
         db.session.delete(req)
         db.session.commit()
 
-        bc_settings.contract.functions.setFarmer(int(user.id),user.fname,user.lname,do1_hash,do2_hash,do3_hash,do4_hash).transact() #Blockchain Function code 
+        tx_hash = block.contract.functions.setFarmer(int(user.id),user.fname,user.lname,do1_hash,do2_hash,do3_hash,do4_hash).transact() #Blockchain Function code 
+        tx_receipt = block.w3.eth.waitForTransactionReceipt(tx_hash)
+        transact = transactions(t_id = tx_receipt.blockNumber, transaction_id = tx_hash.hex(), use_case= "Land Updated from "+session['fname']+" to "+user.fname)
+        db.session.add(transact)
+        db.session.commit()
         print('Request has been accepted. Transaction successsfull')
     elif status == '0':
         req = land_requests.query.filter_by(Land_ID=land_id).first()
@@ -212,25 +221,43 @@ def setstatus(land_id,from_user_id,status):
 
 @app.route('/admin', methods=['GET','POST'])
 def admin():
-    prof = fm_profiles.query.filter_by(id=session['id'],admin='1').first()
-    if prof:
-        return redirect('/admin_profile')
-    else:
-        if request.method=='POST':
-            mail = request.form['email']
-            pswd = request.form['password']
-
-            login = fm_profiles.query.filter_by(email=mail, pswd=pswd, admin='1').first()
-            if login is not None:
-                return redirect('/admin_profile')
-            else:
-                flash('Login failed. Check credentials or contact administrator and try again')
+    if request.method=='POST':
+        mail = request.form['email']
+        pswd = request.form['password']
+        login = fm_profiles.query.filter_by(email=mail, pswd=pswd, admin='1').first()
+        if login is not None:
+            session['admin_fname'] = login.fname
+            session['admin_lname'] = login.lname
+            return redirect('/admin_profile')
+        else:
+            flash('Login failed. Check credentials or contact administrator and try again')     
     return render_template('admin_login.html')
 
+@app.route('/admin_profile/<option>')
 @app.route('/admin_profile')
-def admin_prof():
-    land = land_details.query.filter_by().all()
-    
+def admin_prof(option=None):
+    if option=="land_tb":
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM land_details")
+        prof_data = cursor.fetchall()
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'land_details' order by ordinal_position asc")
+        prof_col = cursor.fetchall()
+        return render_template('admin_profile.html', data = prof_data, name=session['admin_fname']+' '+session['admin_lname'], col = prof_col)
+    elif option=="profile_tb":
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM fm_profiles")
+        prof_data = cursor.fetchall()
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'fm_profiles' order by ordinal_position asc")
+        prof_col = cursor.fetchall()
+        for i in prof_col:
+            print(i[0])
+        return render_template('admin_profile.html', data = prof_data, name=session['admin_fname']+' '+session['admin_lname'], col = prof_col)
+    elif option=="transactions":
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM transactions")
+        prof_data = cursor.fetchall()
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'transactions' order by ordinal_position asc")
+        prof_col = cursor.fetchall()
+        return render_template('admin_profile.html', data = prof_data, name=session['admin_fname']+' '+session['admin_lname'], col = prof_col)
     return render_template('admin_profile.html')
-
 
