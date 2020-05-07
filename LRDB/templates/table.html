@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="text-dark mb-4">LRDB</h3>
+<div class="card shadow">
+    <div class="card-header py-3">
+        <p class="text-primary m-0 font-weight-bold">Land Details</p>
+
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+            <table class="table dataTable my-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Doc1</th>
+                        <th>Doc2</th>
+                        <th>Doc3</th>
+                        <th>Doc4</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td>{{item.land_id}}</td>
+                        <td>{{item.fname}}</td>
+                        <td>{{item.lname}}</td>
+                        <td>
+                            <form action="" onsubmit="return download('{{item.land_id}}','doc1');"><input type="submit"
+                                    value="Download 1"></form>
+                        </td>
+                        <td>
+                            <form action="" onsubmit="return download('{{item.land_id}}','doc2');"><input type="submit"
+                                    value="Download 2"></form>
+                        </td>
+                        <td>
+                            <form action="" onsubmit="return download('{{item.land_id}}','doc3');"><input type="submit"
+                                    value="Download 3"></form>
+                        </td>
+                        <td>
+                            <form action="" onsubmit="return download('{{item.land_id}}','doc4');"><input type="submit"
+                                    value="Download 4"></form>
+                        </td>
+                        <td>{{item.price}}</td>
+                        <td>
+                            <form action="" onsubmit="return myFunction('{{item.land_id}}');"><input type="submit"
+                                    value="Sell"></form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    function myFunction(land_id) {
+        land_id = escape(land_id);
+        var price = prompt('Enter the price of the land');
+        location.href = '/sell_market/' + land_id + '/' + price;
+        return false;
+    }
+</script>
+<script>
+    function download(land_id, doc) {
+        land_id = escape(land_id);
+        doc = escape(doc);
+        location.href = '/download/' + land_id + '/' + doc;
+        return false;
+    }
+</script>
+{% endblock content %}

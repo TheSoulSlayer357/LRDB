@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Register - Brand</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+</head>
+
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="card shadow-lg o-hidden border-0 my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-7" style="height: 722px;">
+                        <div class="p-5" style="width: 1092px;height: 723px;">
+                            <div class="text-center">
+                                <h4 class="text-dark mb-4">Land Details&nbsp;</h4>
+                            </div>
+                            <form class="user" style="height: 327px;" method="POST" enctype="multipart/form-data"
+                                action="">
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user"
+                                            type="text" id="exampleFirstName" placeholder="First Name"
+                                            name="first_name"></div>
+                                    <div class="col-sm-6"><input class="form-control form-control-user" type="text"
+                                            id="exampleFirstName" placeholder="Last Name" name="last_name"></div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="form-row">
+                                        <div class="col"><input class="form-control form-control-user" type="email"
+                                                id="exampleInputEmail" aria-describedby="emailHelp"
+                                                placeholder="Email Address" name="email"></div>
+                                        <div class="col"><input class="form-control form-control-user" type="text"
+                                                id="inputLocation" placeholder="Location" name="loc"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0"><input class="form-control form-control-user"
+                                            type="text" id="unique_id" placeholder="Unique ID" name="uid"></div>
+                                    <div class="col-sm-6"><input class="form-control form-control-user" type="text"
+                                            id="size-1" placeholder="Size(in acres)" name="size"></div>
+                                </div>
+                                <h1 style="height: 20px;font-size: 22px;">Upload Documents</h1>
+                                <div class="form-row">
+                                    <div class="col" style="width: 500px;height: 90px;">
+                                        <p>Document 1:</p><input type="file" name="doc1">
+                                    </div>
+                                    <div class="col" style="width: 500px;height: 90px;">
+                                        <p>Document 2:</p><input type="file" name="doc2">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col" style="width: 500px;height: 90px;">
+                                        <p>Document 3:</p><input type="file" name="doc3">
+                                    </div>
+                                    <div class="col" style="width: 500px;height: 90px;">
+                                        <p>Document 4:</p><input type="file" name="doc4">
+                                    </div>
+
+                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit"
+                                    style="padding: 12px;margin: 0px;">Register Account</button>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center"><a href="profile"><span>Back to Profile</span></a></div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.js"></script>
+    <script src="assets/js/theme.js"></script>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <script>
+        alert('{{message}}');
+    </script>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</body>
+
+</html>

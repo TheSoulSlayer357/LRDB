@@ -1,0 +1,60 @@
+{% extends 'base.html'%}
+{% block content %}
+<h3 class="text-dark mb-4">Marketplace</h3>
+<div class="card shadow">
+    <div class="card-header py-3">
+        <p class="text-primary m-0 font-weight-bold">Marketplace</p>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+            <table class="table dataTable my-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Land ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Size(acres)</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data%}
+                    <tr>
+                        <td>{{item.land_id}}</td>
+                        <td>{{item.fname}}</td>
+                        <td>{{item.lname}}</td>
+                        <td>{{item.size}}</td>
+                        <td>{{item.price}}</td>
+                        <td>
+                            <form action=""
+                                onsubmit="return requests_func('{{item.land_id}}','{{item.id}}','{{item.fname}}')">
+                                <input type="submit" value="Send Request"></form>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    function requests_func(land_id, uid, to_user) {
+        land_id = escape(land_id);
+        uid = escape(uid);
+        to_user = escape(to_user);
+        location.href = '/requests/' + land_id + '/' + uid + '/' + to_user;
+        return false;
+    }
+</script>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<script>
+    alert('{{message}}');
+</script>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% endblock content %}
