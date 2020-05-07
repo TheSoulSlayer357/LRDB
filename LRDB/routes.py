@@ -259,5 +259,5 @@ def admin_prof(option=None):
         cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'transactions' order by ordinal_position asc")
         prof_col = cursor.fetchall()
         return render_template('admin_profile.html', data = prof_data, name=session['admin_fname']+' '+session['admin_lname'], col = prof_col)
-    return render_template('admin_profile.html')
+    return render_template('admin_profile.html' ,name=session['admin_fname']+' '+session['admin_lname'])
 
