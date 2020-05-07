@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow">
+    <div class="card-header py-3">
+        <p class="text-primary m-0 font-weight-bold">Admin Panel</p>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 text-nowrap">
+                <div id="dataTable_length" class="dataTables_length" aria-controls="dataTable">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-md-right dataTables_filter" id="dataTable_filter" style="height: 42px;">
+                    <div class="dropdown"><button class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                            aria-expanded="true" type="button">Select
+                            Option</button>
+                        <div role="menu" class="dropdown-menu mr-2"
+                            style="width: 168px;margin: 0px;margin-left: 284px;">
+                            <a role="presentation" class="dropdown-item" href="/admin_profile/profile_tb">Profile
+                                Table</a>
+                            <a role="presentation" class="dropdown-item" href="/admin_profile/land_tb">Land Registered
+                                Table</a>
+                            <a role="presentation" class="dropdown-item"
+                                href="/admin_profile/transactions">Transactions</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive table mt-2" id="dataTable" role="grid" aria-describedby="dataTable_info">
+                <table class="table dataTable my-0" id="dataTable">
+                    <thead>
+                        <tr>
+                            {% for item in col %}
+                                <th>{{item[0]}}</th>                                
+                            {% endfor %}
+                        </tr>
+                        <!-- <tr>
+                            {% if col %}
+                                <th>{% for item in col %}{{item[0]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[1]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[2]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[3]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[4]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[5]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[6]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[7]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[8]}}{% endfor %}</th>
+                                <th>{% for item in col %}{{item[9]}}{% endfor %}</th>
+                            {% endif %}
+                        </tr> -->
+                    </thead>
+                    <tbody>
+                        {% for item in data %}
+                        <tr>
+                            <td>{{item[0]}}</td>
+                            <td>{{item[1]}}</td>
+                            <td>{{item[2]}}</td>
+                            <td>{{item[3]}}</td>
+                            <td>{{item[4]}}</td>
+                            <td>{{item[5]}}</td>
+                            <td>{{item[6]}}</td>
+                            <td>{{item[7]}}</td>
+                            <td>{{item[8]}}</td>
+                            <td>{{item[9]}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

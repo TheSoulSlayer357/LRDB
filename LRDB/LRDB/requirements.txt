@@ -1,0 +1,8 @@
+Steps to run:
+1. Install Node.js: https://nodejs.org/en/download/
+2. Open Command Prompt and run: npm install -g ganache-cli
+3. Open Command Prompt and run: pip install flask
+4. Open Command Prompt and run: pip install pymysql
+5. Open Command Prompt and run: pip install web3
+6. Open Command Prompt and run: ganache-cli
+7. Open Project Folder and run engine.py
